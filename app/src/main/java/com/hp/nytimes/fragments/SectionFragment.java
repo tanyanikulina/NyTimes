@@ -16,15 +16,18 @@ import android.widget.Toast;
 import com.hp.nytimes.NewsActivity;
 import com.hp.nytimes.R;
 import com.hp.nytimes.adapters.SectionRVAdapter;
+import com.hp.nytimes.interactors.DbTasks.DbLoadTask;
 import com.hp.nytimes.interactors.DbTasks.DbPutTask;
 import com.hp.nytimes.interactors.DbTasks.DbRemoveTask;
 import com.hp.nytimes.interactors.NetInteractor;
 import com.hp.nytimes.repositories.SectionsRepository;
 import com.hp.nytimes.repositories.db.NewsReaderDbHelper;
+import com.hp.nytimes.templates.NewsEntity;
 import com.hp.nytimes.templates.Section;
 import com.hp.nytimes.templates.Urls;
 import com.hp.nytimes.tools.Tools;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import retrofit2.Call;
@@ -142,23 +145,27 @@ public class SectionFragment extends Fragment implements SectionRVAdapter.OnClic
 
 
     private void loadDataFromRepository(){
-        List<Section.Result> results = null;
         switch (sectionUrl){
             case Urls.url_mostemailed:
-                results = repo.getEmailedSection().getResults();
+                sectionAdapter = new SectionRVAdapter(repo.getEmailedNews());
                 break;
             case Urls.url_mostshared:
-                results = repo.getSharedSection().getResults();
+                sectionAdapter = new SectionRVAdapter(repo.getSharedNews());
                 break;
             case Urls.url_mostviewed:
-                results = repo.getViewedSection().getResults();
+                sectionAdapter = new SectionRVAdapter(repo.getViewedNews());
                 break;
             case Urls.url_favorite:
-
+            default:
+                DbLoadTask loadTask = new DbLoadTask(db, new DbLoadTask.OnPostLoad() {
+                    @Override
+                    public void postLoad(List<NewsEntity> neList) {
+                        sectionAdapter = new SectionRVAdapter(neList);
+                    }
+                });
                 break;
         }
-        sectionAdapter = new SectionRVAdapter(results);
-        sectionAdapter.setOnClickNewsListener((SectionRVAdapter.OnClickNewsListener) getContext());
+        sectionAdapter.setOnClickNewsListener(this);
         rv.setAdapter(sectionAdapter);
 
     }
@@ -175,38 +182,39 @@ public class SectionFragment extends Fragment implements SectionRVAdapter.OnClic
     }
 
     @Override
-    public void OnClickNews(Section.Result r) {
+    public void OnClickNews(NewsEntity ne) {
         //открытие ссылки в приложении
 //        Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(r.getUrl()));
 //        getContext().startActivity(i);
 
         Intent intent = new Intent(getContext(), NewsActivity.class);
-        intent.putExtra(Tools.INTENT_EXTRA_URL, r.getUrl());
+        intent.putExtra(Tools.INTENT_EXTRA_URL, ne.getUrl());
         startActivity(intent);
     }
 
     @Override
-    public void OnClickStar(Section.Result r, final SectionRVAdapter.ViewHolder vh, int pos) {
-        //todo if (star not clicked) save news to database
+    public void OnClickStar(NewsEntity ne, final SectionRVAdapter.ViewHolder vh, int pos) {
+        // if (star clicked) save news to database
         switch (sectionUrl){
             case Urls.url_mostemailed:
-                repo.getEmailedSection().getResults().get(pos).setFavorite(!r.isFavorite());
+                repo.getEmailedSection().getResults().get(pos).setFavorite(!ne.isFavorite());
                 break;
             case Urls.url_mostshared:
-                repo.getSharedSection().getResults().get(pos).setFavorite(!r.isFavorite());
+                repo.getSharedSection().getResults().get(pos).setFavorite(!ne.isFavorite());
                 break;
             case Urls.url_mostviewed:
-                repo.getViewedSection().getResults().get(pos).setFavorite(!r.isFavorite());
+                repo.getViewedSection().getResults().get(pos).setFavorite(!ne.isFavorite());
                 break;
         }
-        sectionAdapter.setStar(vh,!r.isFavorite());
-        if(!r.isFavorite()){
-            sectionAdapter.setProgressBarVisibility(vh,View.VISIBLE);
+        sectionAdapter.setStar(vh,ne.isFavorite());
+        if(ne.isFavorite()){
+            sectionAdapter.setProgressBarVisibility(vh,true);
             // save to db
-            DbPutTask putTask = new DbPutTask(db, r, new DbPutTask.OnPostPut() {
+            DbPutTask putTask = new DbPutTask(db, ne, new DbPutTask.OnPostPut() {
                 @Override
-                public void postPut() {
-                    sectionAdapter.setProgressBarVisibility(vh,View.INVISIBLE);
+                public void postPut(String s) {
+                    sectionAdapter.setProgressBarVisibility(vh,false);
+                    Toast.makeText(getContext(), s, Toast.LENGTH_SHORT).show();
                 }
             });
             putTask.execute();
@@ -214,12 +222,13 @@ public class SectionFragment extends Fragment implements SectionRVAdapter.OnClic
 
         }
         else {
-            //todo remove from db
-            sectionAdapter.setProgressBarVisibility(vh,View.VISIBLE);
-            DbRemoveTask removeTask = new DbRemoveTask(db, r, new DbRemoveTask.OnPostRemove() {
+            // remove from db
+            sectionAdapter.setProgressBarVisibility(vh,true);
+            DbRemoveTask removeTask = new DbRemoveTask(db, ne, new DbRemoveTask.OnPostRemove() {
                 @Override
-                public void postRemove() {
-                    sectionAdapter.setProgressBarVisibility(vh,View.INVISIBLE);
+                public void postRemove(String s) {
+                    sectionAdapter.setProgressBarVisibility(vh,false);
+                    Toast.makeText(getContext(), s, Toast.LENGTH_SHORT).show();
                 }
             });
             removeTask.execute();

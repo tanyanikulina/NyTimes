@@ -11,6 +11,8 @@ import java.util.List;
 
 public class Section {
 
+    public Section(){}
+
     private static final String STATUS = "status";
     private static final String COPYRIGHT = "copyright";
     private static final String NUM_RESULTS = "num_results";
@@ -26,6 +28,9 @@ public class Section {
     }
 
     public class Result{
+
+        public Result(){}
+
         private static final String URL = "url";
         private static final String COUNT_TYPE = "count_type";
         private static final String COLUMN = "column";

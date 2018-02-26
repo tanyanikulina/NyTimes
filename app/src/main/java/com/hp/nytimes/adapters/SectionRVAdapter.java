@@ -11,6 +11,7 @@ import android.widget.TextView;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
 import com.hp.nytimes.R;
+import com.hp.nytimes.templates.NewsEntity;
 import com.hp.nytimes.templates.Section;
 
 import java.util.List;
@@ -22,14 +23,15 @@ import java.util.List;
 public class SectionRVAdapter extends RecyclerView.Adapter<SectionRVAdapter.ViewHolder> {
 
     RequestOptions requestOptions;
-    List<Section.Result> resultList;
     OnClickNewsListener onClickNewsListener;
+    List<NewsEntity> nList;
 
 
 
-    public SectionRVAdapter(List<Section.Result> resultList) {
-        this.resultList = resultList;
+    public SectionRVAdapter(List<NewsEntity> nList) {
+        this.nList = nList;
         requestOptions = new RequestOptions().diskCacheStrategy(DiskCacheStrategy.RESOURCE).error(R.drawable.ic_001_home);
+
     }
 
     @Override
@@ -40,25 +42,24 @@ public class SectionRVAdapter extends RecyclerView.Adapter<SectionRVAdapter.View
 
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
-        //settext
-        final Section.Result r = resultList.get(position);
-        holder.tv_title.setText(r.getTitle());
-        holder.tv_date.setText(r.getPublished_date());
-        holder.tv_content.setText(r.getAbstract_());
+        final NewsEntity ne = nList.get(position);
+        holder.tv_title.setText(ne.getTitle());
+        holder.tv_date.setText(ne.getDate());
+        holder.tv_content.setText(ne.getAbstracts());
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                onClickNewsListener.OnClickNews(r);
+                onClickNewsListener.OnClickNews(ne);
             }
         });
         holder.iv_star.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                onClickNewsListener.OnClickStar(r, holder, holder.getAdapterPosition());
+                onClickNewsListener.OnClickStar(ne, holder, holder.getAdapterPosition());
             }
         });
-        setStar(holder, r.isFavorite());
-//        if(r.isFavorite()){
+        setStar(holder, ne.isFavorite());
+//        if(ne.isFavorite()){
 //            holder.iv_star.setImageDrawable(holder.itemView.getResources().getDrawable(android.R.drawable.btn_star_big_on));
 //        }
 //        else {
@@ -83,13 +84,20 @@ public class SectionRVAdapter extends RecyclerView.Adapter<SectionRVAdapter.View
         }
     }
 
-    public void setProgressBarVisibility(ViewHolder vh, int visibility){
-        vh.pb.setVisibility(visibility);
+    public void setProgressBarVisibility(ViewHolder vh, boolean visibility){
+        if (visibility){
+            vh.pb.setVisibility(View.VISIBLE);
+            vh.iv_star.setVisibility(View.INVISIBLE);
+        }
+        else {
+            vh.pb.setVisibility(View.INVISIBLE);
+            vh.iv_star.setVisibility(View.VISIBLE);
+        }
     }
 
     @Override
     public int getItemCount() {
-        return resultList.size();
+        return nList.size();
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder{
@@ -118,8 +126,8 @@ public class SectionRVAdapter extends RecyclerView.Adapter<SectionRVAdapter.View
     }
 
     public interface OnClickNewsListener {
-        void OnClickNews(Section.Result r);
-        void OnClickStar(Section.Result r, ViewHolder vh, int pos);
+        void OnClickNews(NewsEntity ne);
+        void OnClickStar(NewsEntity ne, ViewHolder vh, int pos);
     }
 
 

@@ -5,30 +5,32 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 
 import com.hp.nytimes.repositories.db.NewsReaderContract;
+import com.hp.nytimes.templates.NewsEntity;
 import com.hp.nytimes.templates.Section;
+import com.hp.nytimes.templates.Urls;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by Hp on 25.02.2018.
  */
 
-public class DbLoadTask extends AsyncTask<Section.Result,Void,List<Section.Result>> {
+public class DbLoadTask extends AsyncTask<String,Void,List<NewsEntity>> {
 
     SQLiteDatabase db;
-    Section.Result r;
+    NewsEntity ne;
     OnPostLoad onPostLoad;
 
-    public DbLoadTask(SQLiteDatabase db, Section.Result r, OnPostLoad onPostLoad) {
+    public DbLoadTask(SQLiteDatabase db, OnPostLoad onPostLoad) {
         this.db = db;
-        this.r = r;
         this.onPostLoad = onPostLoad;
     }
 
     @Override
-    protected List<Section.Result> doInBackground(Section.Result... results) {
-        // Define a projection that specifies which columns from the database
-// you will actually use after this query.
+    protected List<NewsEntity> doInBackground(String... results) {
+
+        List<NewsEntity> nList = new ArrayList<>();
         String[] projection = {
                 NewsReaderContract.NewsEntry.COLUMN_TITLE,
                 NewsReaderContract.NewsEntry.COLUMN_ABSTRACTS,
@@ -37,31 +39,31 @@ public class DbLoadTask extends AsyncTask<Section.Result,Void,List<Section.Resul
 //                NewsReaderContract.NewsEntry.COLUMN_SECTION,
         };
 
-// How you want the results sorted in the resulting Cursor
-        String sortOrder =
-                NewsReaderContract.NewsEntry.COLUMN_DATE;
-
+        String sortOrder = NewsReaderContract.NewsEntry.COLUMN_DATE;
         Cursor c = db.query(
-                NewsReaderContract.NewsEntry.TABLE_NAME,
-                projection,
-                null,
-                null,
-                null,                                    
-                null,
-                sortOrder
-        );
-
-        return null;
+                NewsReaderContract.NewsEntry.TABLE_NAME, projection,
+                null, null, null, null, sortOrder);
+        c.moveToFirst();
+        ne= new NewsEntity();
+        while (c.moveToNext()){
+            ne.setAbstracts(c.getString(c.getColumnIndexOrThrow(NewsReaderContract.NewsEntry.COLUMN_ABSTRACTS)));
+            ne.setDate(c.getString(c.getColumnIndexOrThrow(NewsReaderContract.NewsEntry.COLUMN_DATE)));
+            ne.setTitle(c.getString(c.getColumnIndexOrThrow(NewsReaderContract.NewsEntry.COLUMN_TITLE)));
+            ne.setUrl(c.getString(c.getColumnIndexOrThrow(NewsReaderContract.NewsEntry.COLUMN_URL)));
+            ne.setFavorite(true);
+            nList.add(ne);
+        }
+        return nList;
     }
 
     @Override
-    protected void onPostExecute(List<Section.Result> results) {
-        onPostLoad.postLoad();
-        super.onPostExecute(results);
+    protected void onPostExecute(List<NewsEntity> nList) {
+        onPostLoad.postLoad(nList);
+        super.onPostExecute(nList);
     }
 
     public interface OnPostLoad{
-        void postLoad();
+        void postLoad(List<NewsEntity> nList);
     }
 
 }

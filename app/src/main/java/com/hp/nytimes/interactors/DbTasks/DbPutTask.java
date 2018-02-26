@@ -5,6 +5,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 
 import com.hp.nytimes.repositories.db.NewsReaderContract;
+import com.hp.nytimes.templates.NewsEntity;
 import com.hp.nytimes.templates.Section;
 
 /**
@@ -14,12 +15,12 @@ import com.hp.nytimes.templates.Section;
 public class DbPutTask extends AsyncTask<Section.Result,Void,String> {
 
     SQLiteDatabase db;
-    Section.Result r;
+    NewsEntity ne;
     OnPostPut onPostPut;
 
-    public DbPutTask(SQLiteDatabase db, Section.Result r, OnPostPut onPostPut) {
+    public DbPutTask(SQLiteDatabase db, NewsEntity ne, OnPostPut onPostPut) {
         this.db = db;
-        this.r = r;
+        this.ne = ne;
         this.onPostPut = onPostPut;
     }
 
@@ -27,25 +28,25 @@ public class DbPutTask extends AsyncTask<Section.Result,Void,String> {
     protected String doInBackground(Section.Result... params) {
 
         ContentValues values = new ContentValues();
-        values.put(NewsReaderContract.NewsEntry.COLUMN_ABSTRACTS,r.getAbstract_());
-        values.put(NewsReaderContract.NewsEntry.COLUMN_DATE,r.getPublished_date());
-        values.put(NewsReaderContract.NewsEntry.COLUMN_URL,r.getUrl());
-        values.put(NewsReaderContract.NewsEntry.COLUMN_TITLE,r.getTitle());
+        values.put(NewsReaderContract.NewsEntry.COLUMN_ABSTRACTS,ne.getAbstracts());
+        values.put(NewsReaderContract.NewsEntry.COLUMN_DATE,ne.getDate());
+        values.put(NewsReaderContract.NewsEntry.COLUMN_URL,ne.getUrl());
+        values.put(NewsReaderContract.NewsEntry.COLUMN_TITLE,ne.getTitle());
         long newRowId;
         newRowId = db.insert(NewsReaderContract.NewsEntry.TABLE_NAME,null, values);
 
 
-        return null;
+        return "Putted "+ newRowId +" news to db";
     }
 
     @Override
     protected void onPostExecute(String s) {
-        onPostPut.postPut();
+        onPostPut.postPut(s);
         super.onPostExecute(s);
     }
 
     public interface OnPostPut {
-        void postPut();
+        void postPut(String s);
     }
 
 }
