@@ -5,7 +5,7 @@
     android:id="@+id/cv"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    app:cardElevation="4dp"
+    app:cardElevation="2dp"
     >
 
     <LinearLayout
@@ -23,7 +23,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_gravity="top"
-                android:layout_marginRight="@dimen/text_margin"
                 android:scaleType="centerCrop"
                 android:src="@drawable/im3" />
 
@@ -46,13 +45,11 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentBottom="true"
                 android:layout_centerHorizontal="true"
-                android:layout_marginBottom="6dp"
+                android:layout_marginBottom="8dp"
                 android:text="Lorem ipsum dolor"
                 android:textAppearance="?attr/textAppearanceListItem"
                 android:textColor="@color/colorWhite"
                 android:shadowColor="@color/colorPrimaryDark"
-                android:shadowDy="-2sp"
-                android:shadowRadius="2sp"
                 android:textSize="20sp"
                 android:textStyle="bold" />
         </RelativeLayout>

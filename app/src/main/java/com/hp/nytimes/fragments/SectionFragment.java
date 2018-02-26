@@ -3,6 +3,7 @@ package com.hp.nytimes.fragments;
 import android.content.Context;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -13,7 +14,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
-import com.hp.nytimes.NewsActivity;
 import com.hp.nytimes.R;
 import com.hp.nytimes.adapters.SectionRVAdapter;
 import com.hp.nytimes.interactors.DbTasks.DbLoadTask;
@@ -25,9 +25,6 @@ import com.hp.nytimes.repositories.db.NewsReaderDbHelper;
 import com.hp.nytimes.templates.NewsEntity;
 import com.hp.nytimes.templates.Section;
 import com.hp.nytimes.templates.Urls;
-import com.hp.nytimes.tools.Tools;
-
-import java.util.ArrayList;
 import java.util.List;
 
 import retrofit2.Call;
@@ -143,7 +140,6 @@ public class SectionFragment extends Fragment implements SectionRVAdapter.OnClic
 
     }
 
-
     private void loadDataFromRepository(){
         switch (sectionUrl){
             case Urls.url_mostemailed:
@@ -163,13 +159,13 @@ public class SectionFragment extends Fragment implements SectionRVAdapter.OnClic
                         sectionAdapter = new SectionRVAdapter(neList);
                     }
                 });
+                loadTask.execute();
                 break;
         }
         sectionAdapter.setOnClickNewsListener(this);
         rv.setAdapter(sectionAdapter);
 
     }
-
 
     @Override
     public void onAttach(Context context) {
@@ -183,13 +179,13 @@ public class SectionFragment extends Fragment implements SectionRVAdapter.OnClic
 
     @Override
     public void OnClickNews(NewsEntity ne) {
-        //открытие ссылки в приложении
-//        Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(r.getUrl()));
-//        getContext().startActivity(i);
+        //открытие ссылки
+        Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(ne.getUrl()));
+        getContext().startActivity(i);
 
-        Intent intent = new Intent(getContext(), NewsActivity.class);
-        intent.putExtra(Tools.INTENT_EXTRA_URL, ne.getUrl());
-        startActivity(intent);
+//        Intent intent = new Intent(getContext(), NewsActivity.class);
+//        intent.putExtra(Tools.INTENT_EXTRA_URL, ne.getUrl());
+//        startActivity(intent);
     }
 
     @Override
@@ -236,9 +232,4 @@ public class SectionFragment extends Fragment implements SectionRVAdapter.OnClic
 
     }
 
-
-
-//    public interface OnFragmentInteractionListener {
-//        void onFragmentInteraction(Uri uri);
-//    }
 }
